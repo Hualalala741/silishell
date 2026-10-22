@@ -72,14 +72,6 @@ class SiteSelectionRepository:
         self.connection.commit()
         return [dict(row) for row in rows]
 
-    def candidate_count(self, candidate_type: str) -> int:
-        row = self.connection.execute(
-            "SELECT count(*) AS count FROM dwd.site_candidate_lands WHERE candidate_type = %s",
-            (candidate_type,),
-        ).fetchone()
-        self.connection.commit()
-        return int(row["count"])
-
     def list_candidate_lands(self, candidate_type: str) -> list[dict[str, Any]]:
         rows = self.connection.execute(
             """
@@ -94,21 +86,6 @@ class SiteSelectionRepository:
             ORDER BY land_id
             """,
             (candidate_type,),
-        ).fetchall()
-        self.connection.commit()
-        return [dict(row) for row in rows]
-
-    def list_industry_profiles(self, region: str) -> list[dict[str, Any]]:
-        rows = self.connection.execute(
-            """
-            SELECT industry, parent_industry, industry_aliases, development_goal,
-                   development_directions, planned_projects, source_document,
-                   source_url, plan_period
-            FROM ads.industry_plan_profiles
-            WHERE region = %s
-            ORDER BY plan_period, industry
-            """,
-            (region,),
         ).fetchall()
         self.connection.commit()
         return [dict(row) for row in rows]

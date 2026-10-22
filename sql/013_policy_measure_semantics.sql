@@ -1,27 +1,4 @@
--- Enrich generic extraction provenance and normalized policy-measure semantics.
-ALTER TABLE ods.policy_extractions
-    ADD COLUMN IF NOT EXISTS requested_fields JSONB NOT NULL DEFAULT '[]'::jsonb,
-    ADD COLUMN IF NOT EXISTS requirements TEXT,
-    ADD COLUMN IF NOT EXISTS model_provider TEXT,
-    ADD COLUMN IF NOT EXISTS schema_version TEXT NOT NULL DEFAULT 'generic-policy-extraction-v1',
-    ADD COLUMN IF NOT EXISTS error_text TEXT;
-
-DO $$
-BEGIN
-    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'policy_extractions_status_check') THEN
-        ALTER TABLE ods.policy_extractions ADD CONSTRAINT policy_extractions_status_check
-            CHECK (status IN ('success', 'failed'));
-    END IF;
-    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'policy_extractions_data_object_check') THEN
-        ALTER TABLE ods.policy_extractions ADD CONSTRAINT policy_extractions_data_object_check
-            CHECK (jsonb_typeof(data) = 'object');
-    END IF;
-    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'policy_extractions_requested_fields_array_check') THEN
-        ALTER TABLE ods.policy_extractions ADD CONSTRAINT policy_extractions_requested_fields_array_check
-            CHECK (jsonb_typeof(requested_fields) = 'array');
-    END IF;
-END
-$$;
+-- Keep existing policy-measure databases aligned with the current schema.
 
 CREATE TABLE IF NOT EXISTS dwd.policy_tool_types (
     type_id INTEGER PRIMARY KEY,

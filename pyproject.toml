@@ -1,6 +1,6 @@
 [project]
-name = "policy-crawler-demo"
-version = "0.1.0"
+name = "silishell"
+version = "0.2.0"
 description = "Crawl, structure, analyze, and serve government policy data with PostgreSQL."
 requires-python = ">=3.11,<3.14"
 dependencies = [
@@ -31,7 +31,6 @@ packages = ["policy_crawler"]
 
 [dependency-groups]
 dev = [
-    "ipykernel>=7.4.0",
     "pandas>=3.0.6",
     "pytest>=8.0,<9",
 ]

@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 import os
 from pathlib import Path
-from typing import Any, Iterable
+from typing import Any
 
 import psycopg
 from psycopg.rows import dict_row
@@ -13,11 +13,10 @@ from psycopg.types.json import Jsonb
 ROOT = Path(__file__).resolve().parents[1]
 WAREHOUSE_MIGRATION = ROOT / "sql" / "004_policy_warehouse_layers.sql"
 WAREHOUSE_UPGRADES = (
-    ROOT / "sql" / "013_policy_extraction_semantics.sql",
+    ROOT / "sql" / "013_policy_measure_semantics.sql",
 )
 
 POLICY_DOCUMENTS = "ods.policy_documents"
-POLICY_EXTRACTIONS = "ods.policy_extractions"
 CRAWL_RUNS = "ops.crawl_runs"
 PROJECT_PROFILES = "ops.project_profiles"
 CRAWL_SCHEDULES = "ops.crawl_schedules"
@@ -324,34 +323,6 @@ class PolicyRepository:
                 """,
                 (status, Jsonb(result), run_id),
             )
-
-    def store_extractions(
-        self,
-        records: Iterable[dict[str, Any]],
-        requested_fields: Iterable[str] = (),
-        requirements: str = "",
-        model_provider: str | None = None,
-    ) -> int:
-        count = 0
-        fields = list(requested_fields)
-        with self.connection.transaction():
-            for record in records:
-                self.connection.execute(
-                    f"""
-                    INSERT INTO {POLICY_EXTRACTIONS} (
-                        source_url, crawled_at, status, data, requested_fields,
-                        requirements, model_provider, error_text
-                    )
-                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
-                    """,
-                    (
-                        record.get("source_url", ""), record.get("crawled_at"),
-                        record.get("status", "success"), Jsonb(record), Jsonb(fields),
-                        requirements or None, model_provider, record.get("error"),
-                    ),
-                )
-                count += 1
-        return count
 
     def export_topic_documents(self, topic_key: str, destination: Path) -> int:
         """Materialize a temporary portrait input directory from canonical DB rows."""

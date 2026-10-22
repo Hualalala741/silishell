@@ -176,7 +176,7 @@ export default function SiteSelection() {
       fetch(`${API_URL}/site-selection/rank`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ resource_key: resourceKey, industry: "竹产业", minimum_area_mu: minimumArea, weights }),
+        body: JSON.stringify({ resource_key: resourceKey, minimum_area_mu: minimumArea, weights }),
         signal: controller.signal,
         cache: "no-store",
       })

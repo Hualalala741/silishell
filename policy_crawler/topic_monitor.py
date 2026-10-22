@@ -1,12 +1,11 @@
 from __future__ import annotations
 
-import asyncio
 import hashlib
 import html
 import json
 import re
 import time
-from dataclasses import asdict, dataclass
+from dataclasses import dataclass
 from datetime import date, datetime
 from pathlib import Path
 from typing import Any
@@ -15,9 +14,6 @@ from zoneinfo import ZoneInfo
 
 import httpx
 from crawl4ai import AsyncWebCrawler, BrowserConfig, CacheMode, CrawlerRunConfig
-
-from .storage import PolicyRepository
-
 
 SEARCH_API = "https://www.fjyc.gov.cn/ssp/search/api/search"
 SITE_ID = "000000008ab5b860018ab75dc02e0065"
@@ -65,13 +61,6 @@ def load_topic_profile(topic: str, topics_dir: Path = Path("config/topics")) -> 
 def _plain_text(value: str | None) -> str:
     without_tags = re.sub(r"<[^>]+>", "", html.unescape(value or ""))
     return re.sub(r"\s+", " ", without_tags).strip()
-
-
-def _years_ago(today: date, years: int) -> date:
-    try:
-        return today.replace(year=today.year - years)
-    except ValueError:
-        return today.replace(year=today.year - years, day=28)
 
 
 def _kind(row: dict[str, Any]) -> str:
@@ -195,9 +184,6 @@ def search_candidates(
         key=lambda item: (item["relevance_score"], item["published_at"]),
         reverse=True,
     )
-
-
-MonitorRepository = PolicyRepository
 
 
 def _markdown_text(result: Any) -> str:
@@ -342,71 +328,3 @@ async def crawl_new_pages(
             }
         )
     return updates
-
-
-def run_monitor(
-    profile: TopicProfile,
-    years: int = 2,
-    concurrency: int = 2,
-    refresh_existing: bool = False,
-    limit: int | None = None,
-    data_dir: Path = Path("data"),
-    output_dir: Path = Path("output"),
-) -> dict[str, Any]:
-    today = date.today()
-    start_date = _years_ago(today, years)
-    now = datetime.now(TIMEZONE).isoformat(timespec="seconds")
-    candidates = search_candidates(profile, start_date, today)
-
-    repository = PolicyRepository()
-    run_id = repository.create_run(
-        "monitor",
-        {
-            "years": years,
-            "concurrency": concurrency,
-            "refresh_existing": refresh_existing,
-            "limit": limit,
-        },
-        requirement_name=profile.name,
-        topic_key=profile.key,
-    )
-    try:
-        new_candidates = repository.upsert_candidates(profile, candidates, now)
-        to_crawl = repository.candidates_to_crawl(
-            profile, candidates, refresh_existing, limit
-        )
-        crawl_updates = asyncio.run(
-            crawl_new_pages(to_crawl, concurrency)
-        )
-        for update in crawl_updates:
-            repository.update_crawl(profile.key, update)
-    except Exception as exc:
-        repository.finish_run(run_id, {"error": str(exc)}, status="failed")
-        raise
-    finally:
-        repository.close()
-
-    public_updates = [
-        {key: value for key, value in item.items() if key not in {"markdown_content", "html_content"}}
-        for item in crawl_updates
-    ]
-    report = {
-        "topic_profile": asdict(profile),
-        "minimum_relevance_score": profile.minimum_relevance_score,
-        "period": {"start": start_date.isoformat(), "end": today.isoformat()},
-        "run_at": now,
-        "candidate_count": len(candidates),
-        "new_count": len(new_candidates),
-        "crawl_count": len(to_crawl),
-        "crawl_success_count": sum(item["status"] == "crawled" for item in crawl_updates),
-        "candidates": candidates,
-        "crawl_updates": public_updates,
-    }
-    report["run_id"] = run_id
-    repository = PolicyRepository()
-    try:
-        repository.finish_run(run_id, report)
-    finally:
-        repository.close()
-    report["report_path"] = f"postgresql://ops/crawl_runs/{run_id}"
-    return report

@@ -114,30 +114,3 @@ COMMENT ON TABLE ads.rental_community_samples IS
 
 CREATE INDEX IF NOT EXISTS rental_community_samples_geom_gix
 ON ads.rental_community_samples USING GIST (geom);
-
-CREATE TABLE IF NOT EXISTS ads.industry_plan_profiles (
-    profile_id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    region TEXT NOT NULL,
-    industry TEXT NOT NULL,
-    parent_industry TEXT,
-    industry_aliases JSONB NOT NULL DEFAULT '[]'::jsonb,
-    development_goal TEXT NOT NULL DEFAULT '',
-    development_directions JSONB NOT NULL DEFAULT '[]'::jsonb,
-    planned_projects JSONB NOT NULL DEFAULT '[]'::jsonb,
-    source_document TEXT NOT NULL,
-    source_url TEXT NOT NULL,
-    plan_period TEXT NOT NULL,
-    evidence JSONB NOT NULL DEFAULT '[]'::jsonb,
-    imported_at TIMESTAMPTZ NOT NULL DEFAULT now(),
-    UNIQUE (region, industry, plan_period),
-    CHECK (jsonb_typeof(industry_aliases) = 'array'),
-    CHECK (jsonb_typeof(development_directions) = 'array'),
-    CHECK (jsonb_typeof(planned_projects) = 'array'),
-    CHECK (jsonb_typeof(evidence) = 'array')
-);
-
-COMMENT ON TABLE ads.industry_plan_profiles IS
-'选址应用的产业规划检索资料；建表后不预填，由政策画像流程后续发布。';
-
-CREATE INDEX IF NOT EXISTS industry_plan_profiles_period_idx
-ON ads.industry_plan_profiles (region, plan_period, industry);

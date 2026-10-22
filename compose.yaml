@@ -39,8 +39,6 @@ services:
     ports:
       - "8000:8000"
     volumes:
-      - ./data:/app/data
-      - ./output:/app/output
       - crawler-runtime:/app/.runtime
     init: true
     shm_size: 1gb

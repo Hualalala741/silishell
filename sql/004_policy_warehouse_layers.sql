@@ -38,26 +38,6 @@ CREATE INDEX IF NOT EXISTS ods_policy_documents_hash_idx
 ON ods.policy_documents (content_hash)
 WHERE content_hash IS NOT NULL;
 
-CREATE TABLE IF NOT EXISTS ods.policy_extractions (
-    id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    source_url TEXT NOT NULL,
-    crawled_at TIMESTAMPTZ,
-    status TEXT NOT NULL,
-    data JSONB NOT NULL,
-    requested_fields JSONB NOT NULL DEFAULT '[]'::jsonb,
-    requirements TEXT,
-    model_provider TEXT,
-    schema_version TEXT NOT NULL DEFAULT 'generic-policy-extraction-v1',
-    error_text TEXT,
-    stored_at TIMESTAMPTZ NOT NULL DEFAULT now(),
-    CHECK (status IN ('success', 'failed')),
-    CHECK (jsonb_typeof(data) = 'object'),
-    CHECK (jsonb_typeof(requested_fields) = 'array')
-);
-
-CREATE INDEX IF NOT EXISTS ods_policy_extractions_url_idx
-ON ods.policy_extractions (source_url, stored_at DESC);
-
 CREATE TABLE IF NOT EXISTS ops.crawl_runs (
     id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     run_type TEXT NOT NULL,

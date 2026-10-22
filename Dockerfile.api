@@ -16,16 +16,19 @@ WORKDIR /app
 
 COPY pyproject.toml uv.lock README.md ./
 RUN uv sync --frozen --no-dev --no-install-project
+RUN printf 'Acquire::Retries "5";\nAcquire::http::Timeout "30";\n' \
+      > /etc/apt/apt.conf.d/80-retries \
+    && python -m playwright install-deps chromium
+RUN python -m playwright install chromium
 
 COPY policy_crawler ./policy_crawler
 COPY config ./config
 COPY sql ./sql
 COPY scripts ./scripts
 RUN uv sync --frozen --no-dev \
-    && python -m playwright install --with-deps chromium \
-    && mkdir -p /app/data /app/output /app/.runtime \
+    && mkdir -p /app/.runtime \
     && useradd --create-home --uid 10001 appuser \
-    && chown -R appuser:appuser /app/data /app/output /app/.runtime
+    && chown -R appuser:appuser /app/.runtime
 
 USER appuser
 

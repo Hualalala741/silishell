@@ -339,7 +339,7 @@ export default function Home() {
                 </article>)}
             </div>
             <div className="crawl-bar">
-              <div><strong>确认抓取所选正文</strong><span>文件将保存到 data/pages/需求名_日期_时间/</span></div>
+              <div><strong>确认抓取所选正文</strong><span>正文和运行记录将保存到 PostgreSQL</span></div>
               <button className="primary coral-button" onClick={startCrawl} disabled={crawling || selectedUrls.size === 0}>{crawling ? <><span className="spinner"/>正在抓取 {selectedUrls.size} 条…</> : <><Icon name="download"/>确定并抓取文本</>}</button>
             </div>
           </>}

@@ -9,7 +9,6 @@ from policy_crawler.site_candidates import (
     build_stable_natural_resource_mask,
 )
 from policy_crawler.site_selection import (
-    compare_plan_mentions,
     filter_candidates,
     normalize_weights,
     rank_candidates,
@@ -71,16 +70,6 @@ class SiteSelectionRankingTests(unittest.TestCase):
         self.assertEqual([row["land_id"] for row in ranked], ["A", "B"])
         self.assertEqual(ranked[0]["totalScore"], 90)
         self.assertEqual(ranked[0]["policy_score"], 33.3)
-
-    def test_plan_comparison_preserves_original_levels(self):
-        profiles = [
-            {"industry": "竹产业", "industry_aliases": ["竹子"], "plan_period": "2021-2025"},
-            {"industry": "竹产业", "industry_aliases": [], "plan_period": "2026-2030"},
-        ]
-        result = compare_plan_mentions("竹子", profiles)
-        self.assertEqual(result["level"], 2)
-        self.assertEqual(result["score"], 66.7)
-
 
 if __name__ == "__main__":
     unittest.main()

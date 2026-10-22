@@ -33,7 +33,6 @@ logger = logging.getLogger(__name__)
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 TOPICS_DIR = PROJECT_ROOT / "config" / "topics"
-DATA_DIR = PROJECT_ROOT / "data"
 
 
 def _clean_terms(values: list[str]) -> tuple[str, ...]:
@@ -52,11 +51,6 @@ def _topic_key(explicit: str, requirement_name: str) -> str:
     if re.fullmatch(r"[a-z][a-z0-9_-]{0,79}", value):
         return value
     return _safe_requirement_name(requirement_name).lower()
-
-
-def _run_directory(requirement_name: str, now: datetime | None = None) -> Path:
-    timestamp = (now or datetime.now(TIMEZONE)).strftime("%Y%m%d_%H%M%S_%f")[:-3]
-    return DATA_DIR / "pages" / f"{_safe_requirement_name(requirement_name)}_{timestamp}"
 
 
 class SearchRequest(BaseModel):
@@ -142,7 +136,6 @@ class SiteSelectionWeights(BaseModel):
 
 class SiteSelectionRequest(BaseModel):
     resource_key: Literal["abandoned_cropland", "stable_natural_resource"]
-    industry: Literal["竹产业"] = "竹产业"
     minimum_area_mu: Annotated[float, Field(gt=0, le=5000)] = 50
     weights: SiteSelectionWeights = Field(default_factory=SiteSelectionWeights)
 

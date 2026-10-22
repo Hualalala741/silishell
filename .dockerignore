@@ -20,3 +20,5 @@ apps/web/node_modules
 apps/web/tsconfig.tsbuildinfo
 docs
 tests
+config/topics/*
+!config/topics/zhuchanye.json
