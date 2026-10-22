@@ -20,7 +20,6 @@ dependencies = [
 ]
 
 [project.scripts]
-policy-crawler = "policy_crawler.cli:main"
 policy-crawler-api = "policy_crawler.web_api:main"
 
 [build-system]
