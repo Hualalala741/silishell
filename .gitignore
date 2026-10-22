@@ -1,0 +1,36 @@
+.env
+.env.*
+!.env.example
+.venv/
+.runtime/
+.uv-cache/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.coverage
+htmlcov/
+.mypy_cache/
+.ruff_cache/
+/output/
+/data/
+/docs/
+apps/web/.next/
+apps/web/node_modules/
+apps/web/tsconfig.tsbuildinfo
+apps/web/AGENTS.md
+apps/web/CLAUDE.md
+.DS_Store
+/tmp/
+*.log
+
+# Local examples and generated documentation exports.
+/urls.txt
+/config/topics/soy_products.json
+
+# Large local source data is handed over separately or restored from its source.
+2000-2024数据1.xlsx
+
+# Local Docker state and database dumps.
+.docker-data/
+*.dump
+*.sql.gz

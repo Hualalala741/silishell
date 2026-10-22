@@ -1,0 +1,38 @@
+[project]
+name = "policy-crawler-demo"
+version = "0.1.0"
+description = "Crawl, structure, analyze, and serve government policy data with PostgreSQL."
+requires-python = ">=3.11,<3.14"
+dependencies = [
+  "apscheduler>=3.11,<4",
+  "beautifulsoup4>=4.13,<5",
+  "crawl4ai>=0.7,<1",
+  "fastapi>=0.115,<1",
+  "geopandas>=1.0,<2",
+  "httpx>=0.28,<1",
+  "numpy>=2.0,<3",
+  "pyogrio>=0.10,<1",
+  "psycopg[binary]>=3.2,<4",
+  "python-dotenv>=1.0,<2",
+  "rasterio>=1.4,<1.5",
+  "shapely>=2.0,<3",
+  "uvicorn[standard]>=0.34,<1",
+]
+
+[project.scripts]
+policy-crawler = "policy_crawler.cli:main"
+policy-crawler-api = "policy_crawler.web_api:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["policy_crawler"]
+
+[dependency-groups]
+dev = [
+    "ipykernel>=7.4.0",
+    "pandas>=3.0.6",
+    "pytest>=8.0,<9",
+]
