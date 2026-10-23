@@ -10,10 +10,14 @@
 cp .env.example .env
 ```
 
-在 `.env` 中至少填写 Neon 提供的池化 `DATABASE_URL`。DashScope 只在重新生成政策画像时需要，高德 Key 只用于资源选址页的卫星底图；不使用这两项功能时可以留空。然后启动：
-
+在 `.env` 中至少填写 Neon 提供的池化 `DATABASE_URL`。DashScope 只在重新生成政策画像时需要，高德 Key 只用于资源选址页的卫星底图；不使用这两项功能时可以留空。
+首次启动，或代码、依赖、Dockerfile 有更新时：
 ```bash
 docker compose up --build
+```
+之后启动运行：
+```bash
+docker compose up
 ```
 
 启动后访问：
@@ -22,9 +26,8 @@ docker compose up --build
 - API 文档：`http://127.0.0.1:8000/docs`
 - API 健康检查：`http://127.0.0.1:8000/health`
 
-停止服务使用 `docker compose down`。Compose 只运行 Web 和 API；业务数据保存在 Neon，不会因为删除或重建容器而丢失。
+停止服务使用 `docker compose down`。Compose 只运行 Web 和 API；业务数据保存在 Neon。
 
-`DATABASE_URL` 必须使用 Neon 的池化连接，主机名通常包含 `-pooler`。用于 `pg_dump`、`pg_restore` 或迁移的直连地址可另填为 `DATABASE_URL_UNPOOLED`，应用运行时不使用它。不要把真实连接地址提交到 GitHub。
 
 ## 环境变量
 
@@ -118,17 +121,15 @@ npm run dev
 | 中国县级行政区边界 | [geoBoundaries CHN ADM2](https://www.geoboundaries.org/api/current/gbOpen/CHN/ADM2/)，代表年份 2017，PDDL 1.0 | 县域定位、边界存档和裁剪参考 | `scripts/fetch_public_data.py boundaries` 下载；`import_ods_sources.py` 导入 GeoJSON 及元数据 |
 | 行政区划代码历史 | [`yescallop/areacodes`](https://github.com/yescallop/areacodes) 的 `result.csv`，当前锁定 commit `e2c2b2e1fb4ce1fb76e879aa0b80e229adaf950c`，CC0 1.0 | 1981–2025 年省/地/县三级行政代码溯源 | `scripts/fetch_public_data.py admin-codes` 按固定 commit 下载；`import_ods_sources.py` 登记源 CSV |
 | 牛姆林保护区范围 | [福建省生态环境厅《闽环然函〔2018〕37 号》](https://sthjt.fujian.gov.cn/zwgk/zfxxgkzl/zfxxgkml/mlstbh/201809/t20180904_4469888.htm) 正文中的拐点坐标 | 按公开坐标直线连接生成近似 GeoJSON，仅用于地图展示和初筛，不代替正式勘界或审批结论 | `scripts/build_niumulin_boundary.py`，需通过 `--source-html` 提供保存的官方页面 |
-| 公开租房挂牌 | [安居客永春租房列表](https://yongc.zu.anjuke.com/) | 聚合为小区租金样本，用于候选地周边 5 公里居住租金参考；挂牌价不等于成交价 | `crawl_yongchun_rent.py` 采集；`geocode_rental_communities.py` 使用高德 Web 服务 Key 生成坐标 CSV；`import_rental_communities.py` 聚合入库 |
+| 公开租房挂牌（部分） | [安居客永春租房列表](https://yongc.zu.anjuke.com/) | 目前只爬取了部分数据；聚合为小区租金样本，用于候选地周边 5 公里居住租金参考；挂牌价不等于成交价 | `crawl_yongchun_rent.py` 采集；`geocode_rental_communities.py` 使用高德 Web 服务 Key 生成坐标 CSV；`import_rental_communities.py` 聚合入库 |
 | 县域气候与社会经济面板 | 项目所有者本地持有的 `2000-2024数据1.xlsx`（约 53 MB） | 原始工作簿按 sheet/行保存到 ODS | 不随 Git 仓库发布；获得合法副本后放到 `data/raw/2000-2024数据1.xlsx`，再由 `scripts/import_ods_sources.py` 导入 |
 | 工资、水价、电价和县级气候背景 | `data/processed/county_context.json`，其中保留福建省人社厅、永春县政府、电价目录和 NASA POWER 原始链接 | 计算候选地劳动力和公用事业成本指标，并保留县级气候背景 | `fetch_climate_risk.py` 获取逐日气候；`build_county_context.py` 按明示规则重建；`compute_site_selection_metrics.py` 使用 |
 
-上表中“获取脚本”和“加工/入库脚本”不是一回事。`scripts/fetch_public_data.py` 现在负责获取 geoBoundaries、行政区划代码、Planetary Computer 土地覆盖、WorldPop 和 OSM/Overpass 数据，并生成项目所需的县域裁剪或 GeoPackage。这些可重建的大文件仍不直接纳入 Git；`scripts/import_ods_sources.py` 校验产物、计算 SHA-256 并登记来源/许可元数据。
 
-`2000-2024数据1.xlsx` 的上游发布机构、原始链接与授权信息仍未确认，因此已从 Git 发布范围中排除，不应把它表述为可公开再分发的官方数据。OSM 一键脚本只生成已稳定验证的道路、高速出口、河流、聚落和乡镇图层；市场、物流和农业 POI 不在当前自动获取范围内，计算脚本在缺少这些可选图层时仍可运行。`county_context.json` 已找回原构建脚本和来源链接，现可重建。高德卫星图只是前端底图，不参与候选斑块识别；地理编码产物需遵守高德开放平台条款。
 
 ## 主题配置
 
-政策搜索关键词不是 TXT 文件，而是保存在 `config/topics/` 下的 JSON 主题配置中。Web 工作台启动后，
+政策搜索关键词保存在 `config/topics/` 下的 JSON 主题配置中。Web 工作台启动后，
 `GET /topics` 会读取该目录内的全部 `.json` 文件，并把它们显示为可选择的主题。例如
 `config/topics/zhuchanye.json` 对应主题标识 `zhuchanye`：
 
@@ -152,9 +153,6 @@ npm run dev
 新增主题时，复制一个现有 JSON 文件并修改内容，文件名使用稳定的英文或拼音标识，例如
 `config/topics/forest_tourism.json`；重启 API 后就会出现在 Web 工作台中。用户可以在页面上临时调整词表，
 确认并抓取后，实际采用的主题条件会保存到 PostgreSQL，供该项目后续任务使用。
-
-`urls.txt` 与主题配置用途不同：它只是一组已知政策详情页 URL，供旧的批量抓取命令逐行读取；
-Web 工作台的“搜索并发现政策”功能不读取该文件。
 
 ## 政策画像
 
@@ -249,15 +247,3 @@ cd apps/web
 npm run typecheck
 npm run build
 ```
-
-## 部署
-
-推荐保持单仓库：
-
-1. Vercel 从 `apps/web` 构建 Next.js。
-2. Cloud Run Service 从 `Dockerfile.api` 构建 FastAPI。
-3. Neon 或其他支持 PostGIS 的托管 PostgreSQL 保存业务数据。
-4. 前端配置 `NEXT_PUBLIC_API_URL`，服务端配置 `INTERNAL_API_URL`。
-5. API 配置 `DATABASE_URL`、LLM 密钥和正式的 `CORS_ALLOW_ORIGINS`。
-
-不要提交 `.env`。`NEXT_PUBLIC_` 开头的变量会进入浏览器代码，不能存放数据库密码或 LLM 密钥。Cloud Run 可能缩容或启动多个实例，生产定时任务建议迁移到 Cloud Run Job/Cloud Scheduler，不能依赖 API 进程永久常驻。
