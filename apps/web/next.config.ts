@@ -31,6 +31,9 @@ process.env.NEXT_PUBLIC_AMAP_SECURITY_JS_CODE = amapSecurityCode;
 
 const nextConfig: NextConfig = {
   output: "standalone",
+  turbopack: {
+    root: __dirname,
+  },
   env: {
     NEXT_PUBLIC_AMAP_KEY: amapKey,
     NEXT_PUBLIC_AMAP_SECURITY_JS_CODE: amapSecurityCode,

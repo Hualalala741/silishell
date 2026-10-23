@@ -4,13 +4,13 @@
 
 ## 快速启动
 
-需要 Docker Desktop。首次使用先创建本地环境配置：
+需要 Docker Desktop，以及一个已经导入本项目表结构和业务数据的 Neon PostgreSQL 数据库。首次使用先创建本地环境配置：
 
 ```bash
 cp .env.example .env
 ```
 
-在 `.env` 中填写 PostgreSQL、DashScope 和高德地图配置，然后启动：
+在 `.env` 中填写 Neon 提供的池化 `DATABASE_URL`、DashScope 和高德地图配置，然后启动：
 
 ```bash
 docker compose up --build
@@ -21,9 +21,10 @@ docker compose up --build
 - Web：`http://127.0.0.1:3000`
 - API 文档：`http://127.0.0.1:8000/docs`
 - API 健康检查：`http://127.0.0.1:8000/health`
-- PostgreSQL：宿主机 `127.0.0.1:5433`
 
-停止服务使用 `docker compose down`。数据库保存在 Docker volume 中；只有明确不再需要本地数据库时才执行 `docker compose down --volumes`。
+停止服务使用 `docker compose down`。Compose 只运行 Web 和 API；业务数据保存在 Neon，不会因为删除或重建容器而丢失。
+
+`DATABASE_URL` 必须使用 Neon 的池化连接，主机名通常包含 `-pooler`。用于 `pg_dump`、`pg_restore` 或迁移的直连地址可另填为 `DATABASE_URL_UNPOOLED`，应用运行时不使用它。不要把真实连接地址提交到 GitHub。
 
 ## 本地开发
 
@@ -119,7 +120,7 @@ uv run python scripts/compute_site_selection_metrics.py abandoned_cropland \
 
 ## PostgreSQL
 
-项目只使用 PostgreSQL/PostGIS。连接地址由 `DATABASE_URL` 提供，表结构由 `sql/` 下的 SQL 文件建立：
+项目只使用 PostgreSQL/PostGIS。应用通过 `DATABASE_URL` 连接 Neon，表结构由 `sql/` 下的 SQL 文件建立：
 
 - ODS：原始政策正文和来源记录。
 - DWD：原子政策措施和选址候选斑块。
@@ -127,7 +128,7 @@ uv run python scripts/compute_site_selection_metrics.py abandoned_cropland \
 - ADS：政策画像和选址指标。
 - OPS：运行记录、项目配置和调度状态。
 
-业务数据不提交 GitHub。把现有数据库迁到托管 PostgreSQL 时，应使用 `pg_dump`/`pg_restore` 或托管平台的数据迁移工具。
+业务数据和数据库密码不提交 GitHub。项目当前使用 Neon 托管 PostgreSQL；交接时只需通过安全渠道提供数据库连接信息，不能把真实 `.env` 加入仓库。
 
 ## 测试
 

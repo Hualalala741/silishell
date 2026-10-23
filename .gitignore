@@ -34,3 +34,5 @@ apps/web/CLAUDE.md
 .docker-data/
 *.dump
 *.sql.gz
+.neon
+node_modules/
