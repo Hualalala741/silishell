@@ -72,12 +72,15 @@ def main() -> None:
         longitude, latitude = gcj02_to_wgs84(
             float(row["longitude_gcj02"]), float(row["latitude_gcj02"])
         )
+        geocoder = row.get("geocoder")
+        if not isinstance(geocoder, str) or not geocoder.strip():
+            geocoder = "AMap geocoder"
         rows.append(
             {
                 **row,
                 "longitude": longitude,
                 "latitude": latitude,
-                "geocoder": f"AMap JS Geocoder ({row['geocode_level']})",
+                "geocoder": f"{geocoder} ({row['geocode_level']})",
                 "source_file": str(args.rent_listings),
             }
         )

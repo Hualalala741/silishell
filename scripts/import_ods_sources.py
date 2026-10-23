@@ -11,6 +11,7 @@ from typing import Any, Iterator
 from xml.etree import ElementTree as ET
 
 import psycopg
+import rasterio
 from dotenv import load_dotenv
 from psycopg.types.json import Jsonb
 
@@ -29,6 +30,20 @@ def sha256(path: Path) -> str:
         for chunk in iter(lambda: stream.read(1024 * 1024), b""):
             digest.update(chunk)
     return digest.hexdigest()
+
+
+def raster_metadata(path: Path) -> dict[str, Any]:
+    with rasterio.open(path) as source:
+        return {
+            "crs": str(source.crs),
+            "resolution": [abs(float(source.res[0])), abs(float(source.res[1]))],
+            "width": source.width,
+            "height": source.height,
+            "bounds": [float(value) for value in source.bounds],
+            "band_count": source.count,
+            "dtype": source.dtypes[0],
+            "nodata": source.nodata,
+        }
 
 
 def column_number(cell_reference: str) -> int:
@@ -261,7 +276,7 @@ def import_boundaries(
 def main() -> None:
     parser = argparse.ArgumentParser(description="导入县域气候 Excel 和 geoBoundaries 到 ODS")
     parser.add_argument(
-        "--excel", type=Path, default=ROOT / "2000-2024数据1.xlsx"
+        "--excel", type=Path, default=ROOT / "data" / "raw" / "2000-2024数据1.xlsx"
     )
     parser.add_argument(
         "--boundary",
@@ -276,7 +291,12 @@ def main() -> None:
     parser.add_argument(
         "--osm-pbf",
         type=Path,
-        default=ROOT / "data" / "raw" / "osm" / "fujian-20260913.osm.pbf",
+        help="可选的 OSM PBF 源快照；不再是入库必需项",
+    )
+    parser.add_argument(
+        "--osm-features",
+        type=Path,
+        default=ROOT / "data" / "processed" / "osm_features.gpkg",
     )
     parser.add_argument(
         "--admin-codes",
@@ -318,13 +338,15 @@ def main() -> None:
         args.excel,
         args.boundary,
         args.boundary_metadata,
-        args.osm_pbf,
+        args.osm_features,
         args.admin_codes,
         *lulc_files.values(),
         args.worldpop,
     ):
         if not path.is_file():
             raise FileNotFoundError(path)
+    if args.osm_pbf is not None and not args.osm_pbf.is_file():
+        raise FileNotFoundError(args.osm_pbf)
 
     boundary_metadata = json.loads(args.boundary_metadata.read_text(encoding="utf-8"))
     with psycopg.connect(database_url) as connection:
@@ -367,22 +389,32 @@ def main() -> None:
                     "attribution": "geoBoundaries",
                 },
             )
+            osm_metadata_path = args.osm_features.with_suffix(".source.json")
+            osm_metadata = (
+                json.loads(osm_metadata_path.read_text(encoding="utf-8"))
+                if osm_metadata_path.is_file()
+                else {}
+            )
             register_source_file(
                 connection,
-                path=args.osm_pbf,
-                dataset_key="fujian_osm",
-                source_type="osm_pbf",
-                content_type="application/vnd.openstreetmap.data+pbf",
-                represented_year=2026,
+                path=args.osm_features,
+                dataset_key="yongchun_osm_features",
+                source_type="geopackage_osm_extract",
+                content_type="application/geopackage+sqlite3",
+                source_url="https://www.openstreetmap.org/copyright",
                 license_name="Open Data Commons Open Database License (ODbL) 1.0",
-                metadata={
-                    "coverage": "福建省",
-                    "original_source_filename": "fujian-latest.osm.pbf",
-                    "osm_snapshot_at": "2026-09-13T01:11:53Z",
-                    "yongchun_relation_id": 2666967,
-                    "verified_yongchun_highway_way_count": 2103,
-                },
+                metadata={"coverage": "永春县", **osm_metadata},
             )
+            if args.osm_pbf is not None:
+                register_source_file(
+                    connection,
+                    path=args.osm_pbf,
+                    dataset_key="fujian_osm",
+                    source_type="osm_pbf",
+                    content_type="application/vnd.openstreetmap.data+pbf",
+                    license_name="Open Data Commons Open Database License (ODbL) 1.0",
+                    metadata={"coverage": "福建省"},
+                )
             register_source_file(
                 connection,
                 path=args.admin_codes,
@@ -404,6 +436,12 @@ def main() -> None:
                 },
             )
             for year, path in lulc_files.items():
+                source_metadata_path = path.with_suffix(".source.json")
+                source_metadata = (
+                    json.loads(source_metadata_path.read_text(encoding="utf-8"))
+                    if source_metadata_path.is_file()
+                    else {}
+                )
                 register_source_file(
                     connection,
                     path=path,
@@ -419,17 +457,9 @@ def main() -> None:
                     metadata={
                         "coverage": "永春县",
                         "stac_collection": "io-lulc-annual-v02",
-                        "source_item_id": "not recorded by original acquisition script",
-                        "acquired_at_local": "2026-09-15",
                         "processing": "clipped to Yongchun boundary with rasterio.mask",
-                        "crs": "EPSG:32650",
-                        "resolution_m": 10,
-                        "width": 8508,
-                        "height": 3767,
-                        "bounds": [569520.0, 2789300.0, 654600.0, 2826970.0],
-                        "band_count": 1,
-                        "dtype": "uint8",
-                        "nodata": 0,
+                        **raster_metadata(path),
+                        **source_metadata,
                         "class_codes": {
                             "1": "water",
                             "2": "trees",
@@ -443,50 +473,42 @@ def main() -> None:
                         },
                     },
                 )
+            worldpop_metadata_path = args.worldpop.with_suffix(".source.json")
+            worldpop_source_metadata = (
+                json.loads(worldpop_metadata_path.read_text(encoding="utf-8"))
+                if worldpop_metadata_path.is_file()
+                else {}
+            )
             register_source_file(
                 connection,
                 path=args.worldpop,
                 dataset_key="worldpop_china_population_2020_yongchun",
                 source_type="geotiff_population",
                 content_type="image/tiff",
-                source_url="https://hub.worldpop.org/doi/10.5258/SOTON/WP00055",
+                source_url=(
+                    "https://worldpop.arcgis.com/arcgis/rest/services/"
+                    "WorldPop_Total_Population_100m/ImageServer"
+                ),
                 represented_year=2020,
                 license_name="Creative Commons Attribution 4.0 (CC BY 4.0)",
                 metadata={
                     "coverage": "永春县及外接矩形范围",
-                    "source_product": "WorldPop China 100m Population",
-                    "source_variant": "not recorded by original acquisition process",
+                    "source_product": "WorldPop Total Population 2000-2020 100m",
+                    "source_doi": "10.5258/SOTON/WP00645",
                     "retrieval_method": "ArcGIS ImageServer clip/export",
-                    "retrieval_endpoint": "not retained",
-                    "acquired_at_local": "2026-09-15",
-                    "crs": "EPSG:4326",
-                    "resolution_degrees": [
-                        0.000833170731707318,
-                        0.0008331707317073163,
-                    ],
-                    "width": 1014,
-                    "height": 410,
-                    "bounds": [
-                        117.6912139390244,
-                        25.214951,
-                        118.53604906097561,
-                        25.556551,
-                    ],
-                    "band_count": 1,
-                    "dtype": "float32",
-                    "units": "estimated persons per grid square",
-                    "nodata_declared": False,
-                    "observed_fill_value": 3.3999999521443642e38,
-                    "quality_note": (
-                        "GeoTIFF does not declare NoData; values near 3.4e38 must be "
-                        "treated as missing during DWD processing"
+                    "retrieval_endpoint": (
+                        "https://worldpop.arcgis.com/arcgis/rest/services/"
+                        "WorldPop_Total_Population_100m/ImageServer/exportImage"
                     ),
+                    **raster_metadata(args.worldpop),
+                    **worldpop_source_metadata,
+                    "units": "estimated persons per grid square",
                 },
             )
             sheet_counts = import_excel(connection, args.excel, excel_id)
             boundary_count = import_boundaries(connection, args.boundary, boundary_id)
             counts = {
-                "source_files": 9,
+                "source_files": 9 + int(args.osm_pbf is not None),
                 "county_climate_economy": sheet_counts,
                 "boundary_features": boundary_count,
             }

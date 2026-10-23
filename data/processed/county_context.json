@@ -1,0 +1,120 @@
+{
+  "labor": {
+    "minimum_wage_yuan_month": 2045,
+    "part_time_minimum_wage_yuan_hour": 21.5,
+    "effective_date": "2025-04-01",
+    "provincial_minimum_wage_tiers": [
+      1895,
+      2045,
+      2195,
+      2265
+    ],
+    "minimum_wage_source_url": "https://rst.fujian.gov.cn/zw/zfxxgk/zfxxgkml/zyywgz/jycj/202501/t20250127_6710184.htm",
+    "average_education_years_age_15_plus": 8.88,
+    "university_per_100k": 7578,
+    "high_school_per_100k": 10361,
+    "education_source_url": "https://fjyc.gov.cn/zwgk/tjxx/202106/t20210603_2568641.htm",
+    "spatial_scope": "永春县；所有候选地使用同一县级值"
+  },
+  "utilities": {
+    "nonresidential_water_yuan_ton": 2.35,
+    "water_breakdown": {
+      "base": 1.7,
+      "raw_water_fee": 0.55,
+      "water_resource_tax": 0.1
+    },
+    "water_effective_date": "2025-09-01",
+    "water_source_url": "https://www.fjyc.gov.cn/zwgk/tzgg/202508/t20250818_3201140.htm",
+    "agricultural_electricity_low_voltage_yuan_kwh": 0.575,
+    "agricultural_irrigation_low_voltage_yuan_kwh": 0.2477,
+    "electricity_source_url": "https://www.fjyx.gov.cn/zwgk/jgsf/jgsfzc/202210/P020221018607530154795.pdf",
+    "spatial_scope": "县/省级目录价；不区分县内地块"
+  },
+  "land_cost_fallback": {
+    "expropriation_compensation_yuan_hectare": 570000,
+    "expropriation_compensation_yuan_mu": 38000,
+    "source_url": "https://www.fjyc.gov.cn/zwgk/zrzy/zdcq/202402/t20240220_3006311.htm",
+    "usage": "仅作县级土地价值旁证，不与年租金直接混算"
+  },
+  "climate_risk": {
+    "normalized_safety_score": 65.3,
+    "score_range": "0-100，越高代表气候风险越低",
+    "formula": "60%逐日阈值风险 + 40%政府报告灾害过程风险；各计数按预设上限归一化",
+    "daily_thresholds": {
+      "heavy_rain_mm": 50,
+      "extreme_rain_mm": 100,
+      "hot_c": 35,
+      "cold_c": 0
+    },
+    "annual_daily_metrics": [
+      {
+        "year": 2021,
+        "heavy_rain_days_ge_50mm": 2,
+        "extreme_rain_days_ge_100mm": 0,
+        "hot_days_ge_35c": 4,
+        "cold_days_le_0c": 15,
+        "maximum_daily_rain_mm": 76.37,
+        "maximum_temperature_c": 37.43,
+        "minimum_temperature_c": -5.88
+      },
+      {
+        "year": 2022,
+        "heavy_rain_days_ge_50mm": 2,
+        "extreme_rain_days_ge_100mm": 0,
+        "hot_days_ge_35c": 4,
+        "cold_days_le_0c": 12,
+        "maximum_daily_rain_mm": 51.21,
+        "maximum_temperature_c": 36.75,
+        "minimum_temperature_c": -3.5
+      },
+      {
+        "year": 2023,
+        "heavy_rain_days_ge_50mm": 3,
+        "extreme_rain_days_ge_100mm": 0,
+        "hot_days_ge_35c": 5,
+        "cold_days_le_0c": 18,
+        "maximum_daily_rain_mm": 95.34,
+        "maximum_temperature_c": 36.23,
+        "minimum_temperature_c": -5.02
+      },
+      {
+        "year": 2024,
+        "heavy_rain_days_ge_50mm": 4,
+        "extreme_rain_days_ge_100mm": 1,
+        "hot_days_ge_35c": 7,
+        "cold_days_le_0c": 15,
+        "maximum_daily_rain_mm": 100.52,
+        "maximum_temperature_c": 36.02,
+        "minimum_temperature_c": -6.47
+      },
+      {
+        "year": 2025,
+        "heavy_rain_days_ge_50mm": 0,
+        "extreme_rain_days_ge_100mm": 0,
+        "hot_days_ge_35c": 1,
+        "cold_days_le_0c": 19,
+        "maximum_daily_rain_mm": 49.75,
+        "maximum_temperature_c": 39.06,
+        "minimum_temperature_c": -3.92
+      }
+    ],
+    "official_event_metrics": [
+      {
+        "year": 2023,
+        "typhoon_count": 2,
+        "heavy_rain_processes": 7,
+        "convective_processes": 12,
+        "source_url": "https://www.fjyc.gov.cn/zwgk/zfxxgkzl/xzzf/yudou/ml/202404/P020240726797809628778.pdf"
+      },
+      {
+        "year": 2024,
+        "typhoon_count": 2,
+        "heavy_rain_processes": 7,
+        "convective_processes": 14,
+        "source_url": "https://www.fjyc.gov.cn/zwgk/czzj/bmyjs/bmjs/202511/P020251126385170740306.pdf"
+      }
+    ],
+    "source_url": "https://power.larc.nasa.gov/api/temporal/daily/point?parameters=PRECTOTCORR,T2M_MAX,T2M_MIN&community=AG&longitude=118.12&latitude=25.37&start=20210101&end=20251231&format=JSON",
+    "limitation": "NASA POWER为较粗网格再分析数据，当前按县级背景使用，不作为地块气候适宜性结论"
+  }
+}
