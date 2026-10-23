@@ -231,6 +231,9 @@
 .empty { display:grid; place-items:center; min-height:440px; color:var(--muted); font-size:13px; }
 .dataFoot { padding: 14px 4px 28px; color: #98a49f; font-size: 8px; letter-spacing: .08em; }
 
+.loading { min-height: 100vh; display: grid; place-content: center; justify-items: center; gap: 10px; color: #758986; background: #f7faf7; font-size: 12px; }
+.loader { width: 25px; height: 25px; border: 2px solid #d6e8df; border-top-color: #187863; border-radius: 50%; animation: loaderSpin .8s linear infinite; }
+
 .graphDetail { height: auto; min-height: 680px; overflow: visible; padding: 24px; }
 .measureCard {
   position: relative;
@@ -287,6 +290,7 @@
 .sectionPath span { color: #70847e; font-size: 8px; }.sectionPath span:first-child { color: #356d5e; font-weight: 750; }.sectionPath span:not(:last-child)::after { content: " /"; margin-left: 6px; color: #bdc7c3; }
 
 @keyframes pulse { 70% { box-shadow: 0 0 0 6px transparent; } 100% { box-shadow: 0 0 0 0 transparent; } }
+@keyframes loaderSpin { to { transform: rotate(360deg); } }
 @keyframes lineFlow { to { stroke-dashoffset: -48; } }
 @keyframes breathe { 50% { transform: translate(-50%, -50%) scale(1.08); opacity: .72; } }
 @keyframes orbit { to { transform: translate(-50%, -50%) rotate(360deg); } }
