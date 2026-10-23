@@ -74,6 +74,36 @@ npm run dev
 
 程序会检查 `robots.txt`，不尝试绕过验证码或访问限制。扫描版 PDF 没有文本层时需要另接 OCR。
 
+## 主题配置
+
+政策搜索关键词不是 TXT 文件，而是保存在 `config/topics/` 下的 JSON 主题配置中。Web 工作台启动后，
+`GET /topics` 会读取该目录内的全部 `.json` 文件，并把它们显示为可选择的主题。例如
+`config/topics/zhuchanye.json` 对应主题标识 `zhuchanye`：
+
+```json
+{
+  "name": "竹产业",
+  "queries": ["竹产业", "竹子种植", "毛竹", "竹林", "竹材", "竹制品", "竹笋", "以竹代塑"],
+  "subject_terms": ["竹子", "毛竹", "竹林", "竹产业", "竹材", "竹制品"],
+  "context_terms": ["种植", "加工", "补助", "扶持", "项目", "政策", "申报"],
+  "exclude_terms": ["竹荪", "竹柳"],
+  "minimum_relevance_score": 45
+}
+```
+
+- `queries`：逐个提交给永春县站内搜索接口的检索词，用于扩大候选范围。
+- `subject_terms`：判断搜索结果是否属于目标产业的主题词。
+- `context_terms`：判断结果是否包含政策、项目、扶持、生产经营等相关场景。
+- `exclude_terms`：命中后直接排除的无关词。
+- `minimum_relevance_score`：候选结果必须达到的最低相关分，范围为 0–100。
+
+新增主题时，复制一个现有 JSON 文件并修改内容，文件名使用稳定的英文或拼音标识，例如
+`config/topics/forest_tourism.json`；重启 API 后就会出现在 Web 工作台中。用户可以在页面上临时调整词表，
+确认并抓取后，实际采用的主题条件会保存到 PostgreSQL，供该项目后续任务使用。
+
+`urls.txt` 与主题配置用途不同：它只是一组已知政策详情页 URL，供旧的批量抓取命令逐行读取；
+Web 工作台的“搜索并发现政策”功能不读取该文件。
+
 ## 政策画像
 
 政策画像仍是显式的数据维护任务，因为它会调用 Embedding 和 LLM，并产生新的 DWD、DWS、ADS 数据：
