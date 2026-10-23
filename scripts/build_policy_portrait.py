@@ -34,12 +34,12 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--pages-dir", type=Path, help="可选的本地正文目录；默认从 PostgreSQL 读取")
     parser.add_argument(
         "--embedding-model",
-        default=os.getenv("EMBEDDING_MODEL", DEFAULT_EMBEDDING_MODEL),
+        default=DEFAULT_EMBEDDING_MODEL,
     )
     parser.add_argument(
         "--embedding-dimensions",
         type=positive_int,
-        default=int(os.getenv("EMBEDDING_DIMENSIONS", "1024")),
+        default=1024,
     )
     parser.add_argument(
         "--llm-model",

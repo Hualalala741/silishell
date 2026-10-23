@@ -38,8 +38,6 @@ docker compose up --build
 | `LLM_PROVIDER` | 重建政策画像时 | `build_policy_portrait.py` 使用的 LLM 模型名。 |
 | `DASHSCOPE_API_KEY` | 重建政策画像时 | 阿里云百炼 DashScope 访问密钥，同时用于 Embedding 和 LLM 请求。脚本也接受同类的 `LLM_API_KEY`，但模板默认使用前者。 |
 | `LLM_BASE_URL` | 重建政策画像时 | OpenAI 兼容的 LLM/Embedding API 地址，默认为 DashScope 兼容端点。 |
-| `EMBEDDING_MODEL` | 重建政策画像时 | 用于政策文本向量化和聚类的 Embedding 模型。 |
-| `EMBEDDING_DIMENSIONS` | 重建政策画像时 | Embedding 输出维度，必须与所选模型支持的维度一致。 |
 | `NEXT_PUBLIC_AMAP_KEY` | 使用选址地图时 | 高德 Web 端 JS API Key，用于资源选址页的卫星底图。 |
 | `NEXT_PUBLIC_AMAP_SECURITY_JS_CODE` | 使用选址地图时 | 与高德 Key 配套的安全密钥；2021 年 12 月之后申请的 Key 通常需要填写。 |
 | `NEXT_PUBLIC_API_URL` | 按部署地址调整 | 浏览器访问 FastAPI 的地址，在 Next.js 构建时注入。Docker 本地开发默认为 `http://127.0.0.1:8000`。 |
